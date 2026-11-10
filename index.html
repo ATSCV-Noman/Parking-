@@ -50,11 +50,9 @@ button.wa{background:linear-gradient(135deg,#25d366,#12a150)}button.ml{backgroun
 .who{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}.who span{font-size:12px;color:var(--mute);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 #cl{padding:0 4px 8px;min-height:0}#cl:empty{display:none}
 </style></head><body>
-<div id="gate"><div class="gc"><img src="apple-touch-icon.png" alt=""><div><h2>Parking Notice</h2><p>Mont Rose Residences · Tower A &amp; B</p></div><button id="gsi" onclick="signIn(false)" disabled>Sign in with Google</button><div class="gm" id="gm">Loading…</div></div></div>
 <div class="w">
-<div class="who"><span id="who"></span><button class="so" onclick="signOut()">Sign out</button></div>
 <div class="ttl"><small>DEYAAR COMMUNITY MANAGEMENT</small><h1>Parking Notice</h1><p>Mont Rose Residences · Tower A &amp; B</p></div>
-<div class="hint" id="cl"></div>
+<div class="c" style="margin-bottom:14px"><div class="st">☁ Google Drive storage</div><div class="own" id="who"></div><button id="gb" onclick="gbtn()">Sign in with Google</button><div class="hint" id="cl"></div><div class="hint">Records and photos are saved in your own Google Drive (folder “Parking Notices”). Photos older than 90 days are deleted automatically so Drive never fills up; the notice records stay so repeat counts keep working.</div></div>
 <div id="err" hidden></div>
 <div class="pv" id="pv" hidden><div class="pvb"><button id="pm" onclick="show('m')">📋 Management</button><button id="pt" class="s" onclick="show('t')">📄 Tenant notice</button></div><div id="pvok"></div><div class="pvb"><button onclick="dlPdf()">⬇ Download PDF</button><button class="x" onclick="closePv()">✕ Close</button><button class="wa" onclick="shPdf('wa')">💬 WhatsApp</button><button class="ml" onclick="shPdf('em')">✉ Email</button></div><div id="pvn"></div><img id="pvi" alt="Report preview"></div>
 <div class="pv" id="cf" hidden style="display:flex;align-items:center;justify-content:center"><div class="c" style="max-width:420px;width:100%"><div class="st">Report already exists</div><div id="cft"></div><button onclick="commit()">Generate another</button><button class="s" onclick="openDup()">Open existing report</button><button class="s" onclick="$('cf').hidden=true">Cancel</button></div></div>
@@ -266,22 +264,22 @@ const DR='https://www.googleapis.com/drive/v3/files',UP='https://www.googleapis.
 const recOf=r=>{const{img,unsaved,...x}=r;return x};
 const ls=(k,v)=>{try{if(v===null)localStorage.removeItem(k);else if(v===undefined)return localStorage.getItem(k);else localStorage.setItem(k,v)}catch(e){}};
 function cl(t,e){const d=$('cl');d.textContent=t||'';d.style.color=e?'#c0392b':''}
-function gm(t,e){const d=$('gm');d.textContent=t||'';d.className='gm'+(e?' e':'')}
-function showGate(msg,e){const s=ls('pnEmail');$('gate').hidden=false;$('gsi').disabled=false;$('gsi').textContent=ls('pnAuth')=='1'&&s?'Continue as '+s:'Sign in with Google';gm(msg||'',e)}
-function authUI(){$('who').textContent=tok?'Signed in as '+email:'';$('gate').hidden=!tok}
+function gm(t,e){cl(t,e)}
+function showGate(t,e){authUI();cl(t,e)}
+function authUI(){$('who').textContent=tok?'Signed in as '+email:'Not signed in';$('gb').textContent=tok?'Sign out':'Sign in with Google';$('gb').disabled=false}
 function initG(){const s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';
- s.onload=()=>{tc=google.accounts.oauth2.initTokenClient({client_id:CLIENT_ID,scope:'openid email https://www.googleapis.com/auth/drive.file',callback:()=>{}});ls('pnAuth')=='1'?signIn(true):showGate()};
- s.onerror=()=>showGate('Could not load Google sign-in. Check the internet connection and reopen the app.',1);document.head.appendChild(s)}
+ s.onload=()=>{tc=google.accounts.oauth2.initTokenClient({client_id:CLIENT_ID,scope:'openid email https://www.googleapis.com/auth/drive.file',callback:()=>{}})};
+ s.onerror=()=>cl('Could not load Google sign-in. Check the internet connection.',1);document.head.appendChild(s)}
 function getTok(silent){return new Promise((ok,no)=>{if(!tc)return no(new Error('Google sign-in not ready yet'));
  const t=setTimeout(()=>no(new Error('timeout')),silent?9000:120000);
  tc.callback=r=>{clearTimeout(t);if(r.error)return no(new Error(r.error));tok=r.access_token;tokExp=Date.now()+((+r.expires_in||3600)-120)*1000;ok(tok)};
  tc.error_callback=e=>{clearTimeout(t);no(new Error(e&&e.type||'cancelled'))};
- try{tc.requestAccessToken(silent||ls('pnAuth')=='1'?{prompt:'',hint:ALLOWED_EMAIL}:{hint:ALLOWED_EMAIL})}catch(e){clearTimeout(t);no(e)}})}
+ try{tc.requestAccessToken(silent?{prompt:'',hint:ALLOWED_EMAIL}:{hint:ALLOWED_EMAIL})}catch(e){clearTimeout(t);no(e)}})}
 async function gapi(url,opt){opt=opt||{};if(tok&&Date.now()>tokExp){try{await getTok(true)}catch(e){}}
  for(let n=0;n<2;n++){const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),20000);let r;try{r=await fetch(url,{...opt,signal:ac.signal,headers:{...(opt.headers||{}),Authorization:'Bearer '+tok}})}catch(e){throw new Error(e.name=='AbortError'?'Google Drive did not answer (timeout)':'network problem')}finally{clearTimeout(tm)}
   if(r.status==401&&n==0){try{await getTok(true);continue}catch(e){lostSession();throw new Error('session expired')}}
   if(!r.ok&&r.status!=404){let m='';try{m=((await r.json()).error||{}).message||''}catch(e){}throw new Error('Drive error '+r.status+(m?' – '+m.slice(0,140):''))}return r}}
-function lostSession(){tok=null;tokExp=0;showGate('Session expired – tap Continue to reconnect. Nothing is lost.',1)}
+function lostSession(){tok=null;tokExp=0;authUI();cl('⚠ Session expired – tap Sign in with Google again. Nothing is lost.',1)}
 async function ensureFolder(){const q=encodeURIComponent("name='"+FOLDER_NAME+"' and mimeType='application/vnd.google-apps.folder' and trashed=false");const j=await(await gapi(DR+'?q='+q+'&fields=files(id)')).json();if(j.files&&j.files[0])return j.files[0].id;return(await(await gapi(DR,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:FOLDER_NAME,mimeType:'application/vnd.google-apps.folder'})})).json()).id}
 async function upl(meta,blob){const b='pn'+Date.now();const body=new Blob(['--'+b+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+JSON.stringify(meta)+'\r\n--'+b+'\r\nContent-Type: '+blob.type+'\r\n\r\n',blob,'\r\n--'+b+'--']);return(await gapi(UP+'?uploadType=multipart&fields=id',{method:'POST',headers:{'Content-Type':'multipart/related; boundary='+b},body})).json()}
 async function cloudSave(r){try{cl('☁ Saving '+r.no+' to Google Drive…');r.unsaved=1;
@@ -297,17 +295,17 @@ async function purge(){let n=0;for(const r of REC){if(!r.pid||!r.rid)continue;co
 function ph(r){const c=document.createElement('canvas');c.width=800;c.height=600;const x=c.getContext('2d');x.fillStyle='#e8eef9';x.fillRect(0,0,800,600);x.fillStyle='#5a6a8a';x.font='bold 30px Arial';x.textAlign='center';x.fillText('Photo removed',400,285);x.font='22px Arial';x.fillText('(photos are kept for '+KEEP_DAYS+' days)',400,325);r.w=800;r.h=600;return c.toDataURL('image/jpeg',.8)}
 async function pic(id){const res=await gapi(DR+'/'+id+'?alt=media');if(res.status==404)return null;const b=await res.blob();return await new Promise((ok,no)=>{const f=new FileReader();f.onload=()=>ok(f.result);f.onerror=no;f.readAsDataURL(b)})}
 async function withImg(r){if(r.img)return r;try{r.img=(r.pid&&tok&&await pic(r.pid))||ph(r)}catch(e){r.img=ph(r)}return r}
-async function signIn(auto){const b=$('gsi');b.disabled=true;
- try{gm(auto?'Signing you in…':'Opening Google…');
-  await getTok(!!auto);
-  gm('Checking account…');const u=await(await fetch('https://www.googleapis.com/oauth2/v3/userinfo',{headers:{Authorization:'Bearer '+tok}})).json();email=(u.email||'').toLowerCase();
-  if(email!=ALLOWED_EMAIL){try{google.accounts.oauth2.revoke(tok,()=>{})}catch(e){}tok=null;email='';ls('pnAuth',null);ls('pnEmail',null);return showGate('This app only works with '+ALLOWED_EMAIL+'. Sign in with that account.',1)}
-  gm('Checking Drive folder…');folder=await ensureFolder();gm('Loading your notices…');await loadAll();
-  ls('pnAuth','1');ls('pnEmail',email);authUI();$('nn').value=nextNo();$('pl').oninput();hist();
+async function signIn(){const b=$('gb');b.disabled=true;
+ try{cl('Signing in…');await getTok(false);
+  const u=await(await fetch('https://www.googleapis.com/oauth2/v3/userinfo',{headers:{Authorization:'Bearer '+tok}})).json();email=(u.email||'').toLowerCase();
+  if(email!=ALLOWED_EMAIL){try{google.accounts.oauth2.revoke(tok,()=>{})}catch(e){}tok=null;email='';authUI();return cl('⚠ This app only works with '+ALLOWED_EMAIL+'. Sign in with that account.',1)}
+  cl('Checking Drive folder…');folder=await ensureFolder();cl('Loading your notices…');await loadAll();
+  authUI();$('nn').value=nextNo();$('pl').oninput();hist();
   const n=await purge();cl('☁ Connected · '+REC.length+' notice(s) in Drive'+(n?' · '+n+' old photo(s) deleted':'')+'.');
   for(const r of REC.filter(x=>x.unsaved&&x.img))await cloudSave(r)}
- catch(e){tok=null;authUI();const m=String(e.message||e);showGate(auto&&/timeout|popup|cancel|not ready/i.test(m)?'Tap Continue to open the app.':'Sign-in failed: '+m,!(auto&&/timeout|popup|cancel|not ready/i.test(m)))}}
-function signOut(){tok=null;tokExp=0;REC=[];folder=null;email='';ls('pnAuth',null);ls('pnEmail',null);cl('');resetForm();tab(1);authUI();showGate('You are signed out.')}
+ catch(e){tok=null;authUI();cl('⚠ Sign-in failed: '+(e.message||e),1)}}
+function signOut(){tok=null;tokExp=0;REC=[];folder=null;email='';authUI();$('nn').value=nextNo();hist();cl('Signed out.')}
+function gbtn(){tok?signOut():signIn()}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&tok&&Date.now()>tokExp)getTok(true).catch(()=>{})});
-initG();
+initG();authUI();
 </script></body></html>
