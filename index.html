@@ -49,12 +49,13 @@ button.wa{background:linear-gradient(135deg,#25d366,#12a150)}button.ml{backgroun
 .so{width:auto;padding:7px 14px;font-size:13px;box-shadow:none;background:var(--fld);color:var(--acc);border:1px solid var(--bd)}
 .who{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}.who span{font-size:12px;color:var(--mute);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 #cl{padding:0 4px 8px;min-height:0}#cl:empty{display:none}
+.gp{display:grid;gap:12px}
 </style></head><body>
 <div class="w">
 <div class="ttl"><small>DEYAAR COMMUNITY MANAGEMENT</small><h1>Parking Notice</h1><p>Mont Rose Residences · Tower A &amp; B</p></div>
 <div class="c" style="margin-bottom:14px"><div class="st">☁ Google Drive storage</div><div class="own" id="who"></div><button id="gb" onclick="gbtn()">Sign in with Google</button><div class="hint" id="cl"></div><div class="hint">Records and photos are saved in your own Google Drive (folder “Parking Notices”). Photos older than 90 days are deleted automatically so Drive never fills up; the notice records stay so repeat counts keep working.</div></div>
 <div id="err" hidden></div>
-<div class="pv" id="pv" hidden><div class="pvb"><button id="pm" onclick="show('m')">📋 Management</button><button id="pt" class="s" onclick="show('t')">📄 Tenant notice</button></div><div id="pvok"></div><div class="pvb"><button onclick="dlPdf()">⬇ Download PDF</button><button class="x" onclick="closePv()">✕ Close</button><button class="wa" onclick="shPdf('wa')">💬 WhatsApp</button><button class="ml" onclick="shPdf('em')">✉ Email</button></div><div id="pvn"></div><img id="pvi" alt="Report preview"></div>
+<div class="pv" id="pv" hidden><div class="pvb"><button id="pm" onclick="show('m')">📋 Management</button><button id="pt" class="s" onclick="show('t')">📄 Tenant notice</button></div><div id="pvok"></div><div class="pvb"><button onclick="dlPdf()">⬇ Download PDF</button><button class="wa" onclick="shPdf('wa')">💬 WhatsApp</button><button class="x" style="grid-column:1/-1" onclick="closePv()">✕ Close</button></div><div id="pvn"></div><img id="pvi" alt="Report preview"></div>
 <div class="pv" id="cf" hidden style="display:flex;align-items:center;justify-content:center"><div class="c" style="max-width:420px;width:100%"><div class="st">Report already exists</div><div id="cft"></div><button onclick="commit()">Generate another</button><button class="s" onclick="openDup()">Open existing report</button><button class="s" onclick="$('cf').hidden=true">Cancel</button></div></div>
 <div class="sh" id="sh" hidden onclick="if(event.target==this)closeSh()"><div class="p"><div class="hd"><span id="sht"></span><button onclick="closeSh()">Done</button></div><input id="shq" placeholder="🔍 Search" oninput="fillSh()"><div class="ls" id="shl"></div></div></div>
 
@@ -62,7 +63,13 @@ button.wa{background:linear-gradient(135deg,#25d366,#12a150)}button.ml{backgroun
 <div class="c"><div class="st"><span class="n">1</span>Evidence photo</div>
 <div class="ph" id="ph" onclick="file.click()">📷<br>Tap to take photo</div>
 <input type="file" id="file" accept="image/*" capture="environment" hidden><input type="file" id="file2" accept="image/*" hidden>
-<div class="g2"><button class="s" onclick="file.click()">📷 Take Photo</button><button class="s" onclick="file2.click()">🖼 Upload Photo</button></div></div>
+<div class="g2"><button class="s" onclick="file.click()">📷 Take Photo</button><button class="s" onclick="file2.click()">🖼 Upload Photo</button></div>
+<button class="s" id="add2" onclick="showP2()">➕ Add 2nd photo (optional)</button>
+<div id="pbox2" hidden><div class="gp"><label>2nd photo</label><div class="ph" id="ph2" onclick="fileD.click()">📷<br>Tap to add 2nd photo</div>
+<input type="file" id="fileC" accept="image/*" capture="environment" hidden><input type="file" id="fileD" accept="image/*" hidden>
+<div class="g2"><button class="s" onclick="fileC.click()">📷 Take Photo</button><button class="s" onclick="fileD.click()">🖼 Upload Photo</button></div>
+<button class="s" onclick="rmP2()">✕ Remove 2nd photo</button></div></div></div>
+
 
 <div class="c"><div class="st"><span class="n">2</span>When &amp; where</div>
 <div class="g2"><div><label>Date</label><input type="date" id="d"></div><div><label>Time</label><input type="time" id="tm"></div></div>
@@ -100,7 +107,7 @@ const UNITS={"A":{"101":["B3-13"],"102":["B2-111"],"103":["B2-101"],"104":["B2-1
 const RETAIL={};/* add shop names, e.g. {1:'Shop name'} */
 for(const k in BAYS)BAYS[k]=BAYS[k].replace(/Retail (\d)/,(m,n)=>RETAIL[n]?RETAIL[n]+' (Retail '+n+')':m);
 const $=id=>document.getElementById(id);const CLIENT_ID='606113000575-cq97na01gb7krshls30a40eke8q2hbna.apps.googleusercontent.com',ALLOWED_EMAIL='receptionmontrose@gmail.com',KEEP_DAYS=90,FOLDER_NAME='Parking Notices';
-let photo=null,KEY='parkingNotices',REC=[];
+let photo=null,photo2=null,KEY='parkingNotices',REC=[];
 function pick(){const lv=$('lv').value;$('bw').hidden=!lv||lv=='x';if(lv=='x'){$('bay').value='';$('oth').hidden=false;$('own').textContent=''}else{$('bay').value=$('bsel').value;$('oth').hidden=true;$('own').textContent=$('bsel').value?'Bay owner: '+BAYS[$('bsel').value]:''}const vis=BAYS[$('bay').value]==='Visitor';$('vrw').hidden=!vis;const lb=BAYS[$('bay').value]||'';if(lv&&lv!='x'&&$('bay').value)setV(lb.startsWith('Handicap')?0:lb.startsWith('Retail')?3:lb==='Visitor'?4:lb==='Developer Parking'?1:2);redraw()}
 $('lv').onchange=()=>{const lv=$('lv').value;if(lv&&lv!='x'){const k=Object.keys(BAYS).filter(b=>lv=='H'?BAYS[b].startsWith('Handicap'):b.startsWith(lv)).sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));$('bsel').innerHTML='<option value="">— Select parking no. —</option>'+k.map(b=>'<option value="'+b+'">'+b+'  –  '+BAYS[b]+'</option>').join('')}pick()};
 $('bsel').onchange=pick;
@@ -143,12 +150,14 @@ const fillCd=()=>{$('cd').innerHTML=($('em').value=='Sharjah'?'<option value="" 
 const up=()=>{plt();const n=$('pn').value.trim();$('pl').value=n?$('em').value+' '+($('cd').value?$('cd').value+' ':'')+n:'';$('pl').oninput()};
 $('em').onchange=()=>{fillCd();up()};$('cd').onchange=up;$('pn').oninput=up;
 const plt=()=>{$('pe').textContent=$('em').value.toUpperCase();$('pcd').textContent=$('cd').value;$('pnm').textContent=$('pn').value||'00000'};
-const loadPic=e=>{const f=e.target.files[0];if(!f)return;$('ph').textContent='Loading photo...';
- const fail=()=>{$('ph').textContent='Photo could not be read. Tap to try again.';bad('Photo could not be read. Please try another photo.')};
- const rd=new FileReader();rd.onerror=fail;rd.onload=()=>{const im=new Image();im.onerror=fail;im.onload=()=>{const k=Math.min(1,1000/im.width),c=document.createElement('canvas');c.width=im.width*k;c.height=im.height*k;c.getContext('2d').drawImage(im,0,0,c.width,c.height);photo={w:c.width,h:c.height,raw:c};now();redraw()};im.src=rd.result};rd.readAsDataURL(f);e.target.value=''};
-$('file').onchange=loadPic;$('file2').onchange=loadPic;
-function stamped(){const c=document.createElement('canvas');c.width=photo.w;c.height=photo.h;const x=c.getContext('2d');x.drawImage(photo.raw,0,0);const t=fd($('d').value)+'  '+ft($('tm').value)+(BAYS[$('bay').value.trim().toUpperCase()]?'  |  '+$('bay').value.trim().toUpperCase():'');const fs=Math.round(photo.w/28);x.font='bold '+fs+'px Arial';const w=x.measureText(t).width+fs;x.fillStyle='#000';x.fillRect(0,photo.h-fs*1.8,w,fs*1.8);x.fillStyle='#ffd600';x.fillText(t,fs/2,photo.h-fs*.55);return c.toDataURL('image/jpeg',.65)}
-function redraw(){if(photo)$('ph').innerHTML='<img src="'+stamped()+'">'}
+const loadTo=n=>e=>{const f=e.target.files[0];if(!f)return;const box=$(n==1?'ph':'ph2');box.textContent='Loading photo...';
+ const fail=()=>{box.textContent='Photo could not be read. Tap to try again.';bad('Photo could not be read. Please try another photo.')};
+ const rd=new FileReader();rd.onerror=fail;rd.onload=()=>{const im=new Image();im.onerror=fail;im.onload=()=>{const k=Math.min(1,1000/im.width),c=document.createElement('canvas');c.width=im.width*k;c.height=im.height*k;c.getContext('2d').drawImage(im,0,0,c.width,c.height);const o={w:c.width,h:c.height,raw:c};if(n==1){photo=o;now()}else photo2=o;redraw()};im.src=rd.result};rd.readAsDataURL(f);setTimeout(()=>{e.target.value=''},0)};
+$('file').onchange=loadTo(1);$('file2').onchange=loadTo(1);$('fileC').onchange=loadTo(2);$('fileD').onchange=loadTo(2);
+function showP2(){$('pbox2').hidden=false;$('add2').hidden=true}
+function rmP2(){photo2=null;$('ph2').innerHTML='📷<br>Tap to add 2nd photo';$('pbox2').hidden=true;$('add2').hidden=false}
+function stamped(p){p=p||photo;const c=document.createElement('canvas');c.width=p.w;c.height=p.h;const x=c.getContext('2d');x.drawImage(p.raw,0,0);const t=fd($('d').value)+'  '+ft($('tm').value)+(BAYS[$('bay').value.trim().toUpperCase()]?'  |  '+$('bay').value.trim().toUpperCase():'');const fs=Math.round(p.w/28);x.font='bold '+fs+'px Arial';const w=x.measureText(t).width+fs;x.fillStyle='#000';x.fillRect(0,p.h-fs*1.8,w,fs*1.8);x.fillStyle='#ffd600';x.fillText(t,fs/2,p.h-fs*.55);return c.toDataURL('image/jpeg',.65)}
+function redraw(){if(photo)$('ph').innerHTML='<img src="'+stamped(photo)+'">';if(photo2)$('ph2').innerHTML='<img src="'+stamped(photo2)+'">'}
 ['d','tm','bay'].forEach(i=>$(i).addEventListener('change',redraw));
 function bad(t,ok){const e=$('err');e.textContent=t;e.className=ok?'ok':'';e.hidden=false;window.scrollTo({top:0,behavior:'smooth'})}
 let fresh=false,pend=null,dupId=null;
@@ -159,7 +168,7 @@ function gen(){
  if(!pl)return bad('Enter the plate number.');
  if(!b&&!$('loc').value.trim())return bad('Select the parking no. or enter a location.');
  if($('vio').value==='')return bad('Select the violation.');
- const r={id:Date.now(),no:$('nn').value,d:$('d').value,t:$('tm').value,bay:b,own:BAYS[b]||'',loc:$('loc').value.trim(),v:+$('vio').value,nv:1,pl,vu:$('vu').value.trim(),ap:$('vp').value.trim(),vr:BAYS[b]==='Visitor'?$('vr').value:'',od:$('od').value.trim(),ob:$('ob').value.trim(),by:$('by').value.trim(),img:stamped(),w:photo.w,h:photo.h};
+ const r={id:Date.now(),no:$('nn').value,d:$('d').value,t:$('tm').value,bay:b,own:BAYS[b]||'',loc:$('loc').value.trim(),v:+$('vio').value,nv:1,pl,vu:$('vu').value.trim(),ap:$('vp').value.trim(),vr:BAYS[b]==='Visitor'?$('vr').value:'',od:$('od').value.trim(),ob:$('ob').value.trim(),by:$('by').value.trim(),img:stamped(photo),w:photo.w,h:photo.h,...(photo2?{img2:stamped(photo2),w2:photo2.w,h2:photo2.h}:{})};
  const pn=pl.replace(/\s/g,''),dup=L().filter(x=>x.pl.replace(/\s/g,'')==pn&&x.bay==b&&(b||x.loc==r.loc)&&Date.now()-x.id<36e5).pop();
  pend=r;dupId=dup?dup.id:null;
  if(dup){$('cft').textContent='A report for '+pl+' at '+where(r)+' was already generated at '+ft(dup.t)+' ('+dup.no+'). Generate another one?';$('cf').hidden=false;return}
@@ -171,7 +180,7 @@ function commit(){$('cf').hidden=true;const r=pend,a=L();r.rep=a.filter(x=>x.pl.
 function openDup(){const x=L().find(x=>x.id==dupId);$('cf').hidden=true;fresh=false;if(x)pdf(x,'m')}
 function show(t){pdf(cur.r,t,fresh)}
 function closePv(){$('pv').hidden=true;if(fresh){fresh=false;resetForm();tab(2);bad('Saved to History ✓',1)}}
-function resetForm(){photo=null;$('ph').innerHTML='📷<br>Tap to take photo';['pn','vp','od','ob','loc','pl','bay','vu'].forEach(i=>$(i).value='');['lv','vt','vun','vio'].forEach(i=>$(i).value='');buildV();$('bw').hidden=true;$('oth').hidden=true;$('vrw').hidden=true;$('own').textContent='';$('rep').textContent='';fillU();[...$('lc').children].forEach(x=>x.classList.remove('on'));$('cd').value='';fillCd();$('pn').value='';plt();now();$('nn').value=nextNo()}
+function resetForm(){photo=null;rmP2();$('ph').innerHTML='📷<br>Tap to take photo';['pn','vp','od','ob','loc','pl','bay','vu'].forEach(i=>$(i).value='');['lv','vt','vun','vio'].forEach(i=>$(i).value='');buildV();$('bw').hidden=true;$('oth').hidden=true;$('vrw').hidden=true;$('own').textContent='';$('rep').textContent='';fillU();[...$('lc').children].forEach(x=>x.classList.remove('on'));$('cd').value='';fillCd();$('pn').value='';plt();now();$('nn').value=nextNo()}
 $('lc').onclick=e=>{const c=e.target.closest('.chip');if(!c)return;$('lv').value=c.dataset.v;$('lv').onchange();[...$('lc').children].forEach(x=>x.classList.toggle('on',x==c))};
 let shId=null;
 function openPk(id,t){shId=id;$('sht').textContent=t;$('shq').value='';$('shq').hidden=$(id).options.length<9;fillSh();$('sh').hidden=false}
@@ -183,6 +192,7 @@ $('shl').onclick=e=>{const r=e.target.closest('.row');if(!r)return;const s=$(shI
 function closeSh(){$('sh').hidden=true}
 function syncPk(){['bsel','vun','vt','em','cd','vr'].forEach(id=>{const s=$(id),v=$('v_'+id),o=s.options[s.selectedIndex],has=o&&(s.value!==''||o.dataset.real);const t=has?o.text.replace('  –  ',' · '):(id=='cd'?'Required':'Select');if(v.textContent!==t){v.textContent=t;v.className='v'+(has?'':' ph2')}});plt()}
 setInterval(syncPk,250);syncPk();
+function ord(n){return n==1?'1st':n==2?'2nd':n==3?'3rd':n+'th'}
 const where=r=>r.bay?(r.bay+(r.loc?' – '+r.loc:'')):r.loc;
 function wrapT(c,t,w,font){c.font=font;const o=[];let l='';for(const wd of String(t).split(' ')){const tr=l?l+' '+wd:wd;if(c.measureText(tr).width>w&&l){o.push(l);l=wd}else l=tr}if(l)o.push(l);return o}
 const loadImg=src=>new Promise((ok,no)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=no;i.src=src});
@@ -194,7 +204,12 @@ async function render(r,type){
  const T=(s,x,y,sz,b,cl,al)=>{c.font=(b?'bold ':'')+sz+'px '+FF;c.fillStyle=col(cl||[0,0,0]);c.textAlign=al||'left';c.textBaseline='alphabetic';c.fillText(s,x,y)};
  const L=(x1,y1,x2,y2,cl,w)=>{c.strokeStyle=col(cl);c.lineWidth=w||.5;c.beginPath();c.moveTo(x1,y1);c.lineTo(x2,y2);c.stroke()};
  const Rc=(x,y,w,h,f,s,lw)=>{if(f){c.fillStyle=col(f);c.fillRect(x,y,w,h)}if(s){c.strokeStyle=col(s);c.lineWidth=lw||.6;c.strokeRect(x,y,w,h)}};
- const img=await loadImg(r.img),date=fd(r.d),tim=ft(r.t);
+ const img=await loadImg(r.img),img2=r.img2?await loadImg(r.img2):null,date=fd(r.d),tim=ft(r.t);
+ const evBox=(y0,mb)=>{const A=[[img,r.w,r.h]];if(img2)A.push([img2,r.w2,r.h2]);const n=A.length,hh=22,pad=12,cap=20,gap=12,cw=(W-2*M-2*pad-gap*(n-1))/n,mh=Math.max(100,mb-y0-hh-pad-8-cap);
+  const S=A.map(([i,w,h])=>{const k=Math.min(cw/w,mh/h);return{i,w:w*k,h:h*k}});const pH=Math.max(...S.map(o=>o.h)),bh=hh+pad+pH+8+cap;
+  Rc(M,y0,W-2*M,bh,null,B,.8);Rc(M,y0,W-2*M,hh,N);T('PROOF OF VIOLATION ATTACHED',W/2,y0+15,10.5,1,WH,'center');
+  S.forEach((o,k)=>{const x0=M+pad+k*(cw+gap)+(cw-o.w)/2,y1=y0+hh+pad+(pH-o.h)/2;c.drawImage(o.i,x0,y1,o.w,o.h);Rc(x0,y1,o.w,o.h,null,B,.5)});
+  T((n>1?'Photos':'Photo')+' taken: '+date+'  '+tim+(r.bay?'  |  '+r.bay:''),W/2,y0+hh+pad+pH+8+13,8.5,0,G,'center');return bh};
  if(type=='m'){
   T('PARKING NOTICE REPORT',W/2,50,19,1,N,'center');T('Notices Issued with Photographic Evidence',W/2,66,10,0,G,'center');L(M,76,W-M,76,N,1.2);
   Rc(M,90,W-2*M,50,WH,B);Rc(M,90,78,50,LT);Rc(M+278,90,70,50,LT);L(M,115,W-M,115,B);L(M+78,90,M+78,140,B);L(M+278,90,M+278,140,B);L(M+348,90,M+348,140,B);Rc(M,90,W-2*M,50,null,B);
@@ -202,33 +217,20 @@ async function render(r,type){
   T('Mont Rose Residences - Tower A & B',M+86,106,10,1);T(r.by||'Security Team',M+86,131,10,1);T(r.no,M+356,106,10,1);T(date,M+356,131,10,1);
   const y=162;Rc(M,y,W-2*M,22,N);T('NOTICE  |  '+r.no,M+10,y+15,11,1,WH);T(date+'  '+tim,W-M-10,y+15,10,0,WH,'right');
   const rows=[['Parking No.',r.bay||'-'],['Location',where(r)],['Bay Owner',r.own||'-'],['Violation',vtx(r)],['Plate No.',r.pl],['Violator Unit',r.vu||'-'],['Assigned Bay',r.ap||'-'],['OB No.',r.ob||'-'],['Other Details',r.od||'-'],['Issued By',r.by||'-']];
-  const dw=198,iw=W-2*M-dw-26,ih=iw*r.h/r.w;let yy=y+30;
+  const dw=198,iw0=W-2*M-dw-26,h1=iw0*r.h/r.w,h2=img2?iw0*r.h2/r.w2:0,sk=Math.min(1,500/(h1+(h2?h2+10:0))),iw=iw0*sk,ih=h1*sk,ih2=h2*sk;let yy=y+30;
   rows.forEach(([a,b])=>{const ls=wrapT(c,b,dw-76,'bold 10px '+FF);T(a,M+10,yy+14,8.5,1,G);ls.forEach((l,i)=>T(l,M+80,yy+14+i*12,10,1));const h=Math.max(28,ls.length*12+16);L(M+8,yy+h,M+dw,yy+h,B,.3);yy+=h});
-  const ch=Math.max(yy-y-22,ih+20);Rc(M,y+22,W-2*M,ch,null,B,.8);c.drawImage(img,M+dw+16,y+32,iw,ih);
+  const ch=Math.max(yy-y-22,ih+(ih2?ih2+10:0)+20),px=M+dw+16+(iw0-iw)/2;Rc(M,y+22,W-2*M,ch,null,B,.8);c.drawImage(img,px,y+32,iw,ih);if(img2)c.drawImage(img2,px,y+42+ih,iw,ih2);
   T('Notice placed on vehicle and photographed at the time of issue. Time stamp on photo is the upload time.',M,y+22+ch+18,9,0,G);
   L(M,770,W-M,770,B);T('Prepared By (Name & Signature): ______________________________',M,750,10);T('Parking Notice Report - '+r.no+'  |  '+date,M,786,8.5,0,G);T('Page 1 of 1',W-M,786,8.5,0,G,'right');
  }else{
-  const FS=10.5;
-  T('DEYAAR',W-M,50,22,1,N,'right');T('COMMUNITY MANAGEMENT',W-M,64,8,1,G,'right');
-  T('PARKING NOTICE',W/2,104,20,1,[0,0,0],'center');
-  let y=140;T('Dear Resident,',M,y,FS);y+=20;
-  wrapT(c,'This vehicle has been found parked in violation of the community rules in one or more of the following ways:',W-2*M,FS+'px '+FF).forEach(l=>{T(l,M,y,FS);y+=14});y+=14;
-  const tk=r.nv?[0,1,2,3,3,4,5][r.v]:[0,1,2,3,4,5,-1][r.v],top=y;
-  const BX=['Parking in People of Determination parking space','Parking in Unauthorized / Non-designated space','Parking in a space assigned to another resident','Parking in Retail / Visitor only parking space','Blocking access to driveways, emergency routes, or other vehicles','Improperly parked, causing obstruction or inconvenience'];
-  BX.forEach((t,i)=>{const yy=top+i*26;Rc(M+4,yy-10,12,12,WH,[0,0,0],1);if(i==tk){c.strokeStyle='#000';c.lineWidth=1.8;c.beginPath();c.moveTo(M+6,yy-4);c.lineTo(M+9.5,yy);c.lineTo(M+15,yy-9);c.stroke()}T(t,M+26,yy,10)});
-  const pw=160,ph=pw*r.h/r.w,px=W-M-pw;c.drawImage(img,px,top-12,pw,ph);T('Photo evidence · '+date+' '+tim,px+pw,top-12+ph+10,7.5,0,G,'right');
-  y=top+6*26+6;
-  const P2=(t,b)=>{wrapT(c,t,W-2*M,(b?'bold ':'')+FS+'px '+FF).forEach(l=>{T(l,M,y,FS,b);y+=14});y+=8};
-  P2('When you purchased or rented your unit, you agreed to comply with all community rules and regulations, including proper use of parking facilities.');
-  P2('You are hereby instructed to remove this vehicle immediately and park only on your designated parking area.',1);
-  T('Failure to comply may result in:',M,y,FS);y+=16;
-  ['Reporting to Dubai Police / RTA','Issuance of violation notice on MOLLAK with a Penalty of AED 1000','Towing of the vehicle at the owner’s cost'].forEach(t=>{T('•',M+14,y,FS);T(t,M+28,y,FS);y+=15});y+=8;
-  P2('We trust this action will not be necessary and look forward to your cooperation in keeping our community safe, accessible, and respectful for all residents.');
-  y+=6;T('Yours Sincerely,',M,y,FS);y+=15;T('Deyaar Community Management',M,y,FS,1);L(M,y+20,W-M,y+20,[0,0,0],.8);
-  const fy=y+58,cx=[M,320],ex=[300,W-M];
-  const F=(lab,val,col,row)=>{const x=cx[col],yy=fy+row*40;c.font=FS+'px '+FF;T(lab+':',x,yy,FS);const lx=x+c.measureText(lab+':').width+6;L(lx,yy+2,ex[col],yy+2,[0,0,0],.7);let v=String(val||'');c.font='bold 10px '+FF;while(v.length>3&&c.measureText(v).width>ex[col]-lx-4)v=v.slice(0,-2);if(v!=String(val||''))v+='…';T(v,lx+3,yy-1,10,1)};
-  F('Date',date+'  '+tim,0,0);F('Vehicle Plate No',r.pl,1,0);F('Assigned Parking No',r.ap,0,1);F('Other Details',[r.vr,r.od].filter(Boolean).join(' – '),1,1);F('Signature','',0,2);F('OB No',r.ob,1,2);
-  T('Notice No. '+r.no+'  ·  Issued by '+(r.by||'Security Team')+'  ·  Mont Rose Residences',M,820,8,0,G);
+  T('DEYAAR COMMUNITY MANAGEMENT',W/2,50,17,1,N,'center');T('Mont Rose Residences – Parking Notice',W/2,66,10,0,G,'center');L(M,76,W-M,76,N,1.2);
+  T('Date: '+date,M,104,10);T('Notice No.: '+r.no,W-M,104,10,0,null,'right');
+  const ps=['Dear Resident,','A parking notice was placed on your vehicle (Plate '+r.pl+') on '+date+' at '+tim+', at '+where(r)+'.','Reason: '+vtx(r)+'.',...(r.ap?['Your assigned parking is '+r.ap+'.']:[]),'Please move the vehicle to your designated parking. '+(r.img2?'Photos are':'A photo is')+' attached for your reference.'];
+  if(r.rep==1)ps.push('This is the 2nd notice for this vehicle. Please note that further violations will be escalated and may result in reporting to Dubai Police / RTA, a violation notice on MOLLAK with a penalty of AED 1000, and towing of the vehicle at the owner’s cost.');else if(r.rep>=2)ps.push('This is the '+ord(r.rep+1)+' notice for this vehicle. Due to repeated violations, this matter may be escalated, including reporting to Dubai Police / RTA, a violation notice on MOLLAK with a penalty of AED 1000, and towing of the vehicle at the owner’s cost.');
+  ps.push('Thank you for your cooperation in keeping our community safe, accessible, and respectful for all residents.');
+  let y=134;ps.forEach(p=>{const ls=wrapT(c,p,W-2*M,'11px '+FF);ls.forEach((l,i)=>T(l,M,y+i*15,11));y+=ls.length*15+9});
+  y+=6;const bh=evBox(y,735);
+  const sy=y+bh+26;T('Yours Sincerely,',M,sy,11);T('Deyaar Community Management',M,sy+16,11,1);
  }
  return cv}
 function mkpdf(jpg,w,h){const E=s=>new TextEncoder().encode(s),P=[];let off=0,X=[];
@@ -261,7 +263,7 @@ function bk(){const b=new Blob([JSON.stringify(L().map(recOf))],{type:'applicati
 /* ===== Google sign-in + Drive storage ===== */
 let tok=null,tc=null,folder=null,email='',tokExp=0;
 const DR='https://www.googleapis.com/drive/v3/files',UP='https://www.googleapis.com/upload/drive/v3/files';
-const recOf=r=>{const{img,unsaved,...x}=r;return x};
+const recOf=r=>{const{img,img2,unsaved,...x}=r;return x};
 const ls=(k,v)=>{try{if(v===null)localStorage.removeItem(k);else if(v===undefined)return localStorage.getItem(k);else localStorage.setItem(k,v)}catch(e){}};
 function cl(t,e){const d=$('cl');d.textContent=t||'';d.style.color=e?'#c0392b':''}
 function gm(t,e){cl(t,e)}
@@ -284,6 +286,7 @@ async function ensureFolder(){const q=encodeURIComponent("name='"+FOLDER_NAME+"'
 async function upl(meta,blob){const b='pn'+Date.now();const body=new Blob(['--'+b+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+JSON.stringify(meta)+'\r\n--'+b+'\r\nContent-Type: '+blob.type+'\r\n\r\n',blob,'\r\n--'+b+'--']);return(await gapi(UP+'?uploadType=multipart&fields=id',{method:'POST',headers:{'Content-Type':'multipart/related; boundary='+b},body})).json()}
 async function cloudSave(r){try{cl('☁ Saving '+r.no+' to Google Drive…');r.unsaved=1;
  if(!r.pid){const jb=await(await fetch(r.img)).blob();r.pid=(await upl({name:r.no+'_'+r.pl.replace(/\s/g,'')+'.jpg',parents:[folder]},jb)).id}
+ if(r.img2&&!r.pid2){const jb2=await(await fetch(r.img2)).blob();r.pid2=(await upl({name:r.no+'_'+r.pl.replace(/\s/g,'')+'_2.jpg',parents:[folder]},jb2)).id}
  const rec=JSON.stringify(recOf(r));
  if(r.rid){await gapi(DR+'/'+r.rid+'?fields=id',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({description:rec})})}
  else{r.rid=(await upl({name:r.no+'.json',mimeType:'application/json',parents:[folder],description:rec},new Blob([rec],{type:'application/json'}))).id}
@@ -291,10 +294,10 @@ async function cloudSave(r){try{cl('☁ Saving '+r.no+' to Google Drive…');r.u
  catch(e){cl('⚠ '+r.no+' is not saved to Drive yet ('+e.message+'). The PDF was still created. It will be saved when you sign in again.',1)}}
 async function loadAll(){let out=[],pt='';do{const q=encodeURIComponent("'"+folder+"' in parents and trashed=false and mimeType='application/json'");const j=await(await gapi(DR+'?q='+q+'&fields=nextPageToken,files(id,description)&pageSize=1000'+(pt?'&pageToken='+pt:''))).json();for(const f of j.files||[]){try{const x=JSON.parse(f.description);x.rid=f.id;out.push(x)}catch(e){}}pt=j.nextPageToken||''}while(pt);out.sort((a,b)=>a.id-b.id);
  const keep=REC.filter(r=>r.unsaved&&!out.some(o=>o.id==r.id));REC=out.concat(keep)}
-async function purge(){let n=0;for(const r of REC){if(!r.pid||!r.rid)continue;const age=(Date.now()-new Date(r.d+'T00:00:00'))/864e5;if(!(age>KEEP_DAYS))continue;try{await gapi(DR+'/'+r.pid,{method:'DELETE'});r.pid='';r.gone=1;delete r.img;await gapi(DR+'/'+r.rid+'?fields=id',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({description:JSON.stringify(recOf(r))})});n++}catch(e){}}return n}
+async function purge(){let n=0;for(const r of REC){if((!r.pid&&!r.pid2)||!r.rid)continue;const age=(Date.now()-new Date(r.d+'T00:00:00'))/864e5;if(!(age>KEEP_DAYS))continue;try{for(const k of ['pid','pid2']){if(r[k]){await gapi(DR+'/'+r[k],{method:'DELETE'});r[k]=''}}r.gone=1;delete r.img;delete r.img2;await gapi(DR+'/'+r.rid+'?fields=id',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({description:JSON.stringify(recOf(r))})});n++}catch(e){}}return n}
 function ph(r){const c=document.createElement('canvas');c.width=800;c.height=600;const x=c.getContext('2d');x.fillStyle='#e8eef9';x.fillRect(0,0,800,600);x.fillStyle='#5a6a8a';x.font='bold 30px Arial';x.textAlign='center';x.fillText('Photo removed',400,285);x.font='22px Arial';x.fillText('(photos are kept for '+KEEP_DAYS+' days)',400,325);r.w=800;r.h=600;return c.toDataURL('image/jpeg',.8)}
 async function pic(id){const res=await gapi(DR+'/'+id+'?alt=media');if(res.status==404)return null;const b=await res.blob();return await new Promise((ok,no)=>{const f=new FileReader();f.onload=()=>ok(f.result);f.onerror=no;f.readAsDataURL(b)})}
-async function withImg(r){if(r.img)return r;try{r.img=(r.pid&&tok&&await pic(r.pid))||ph(r)}catch(e){r.img=ph(r)}return r}
+async function withImg(r){if(!r.img){try{r.img=(r.pid&&tok&&await pic(r.pid))||ph(r)}catch(e){r.img=ph(r)}}if(r.pid2&&!r.img2&&tok){try{r.img2=(await pic(r.pid2))||undefined}catch(e){}}return r}
 async function signIn(){const b=$('gb');b.disabled=true;
  try{cl('Signing in…');await getTok(false);
   const u=await(await fetch('https://www.googleapis.com/oauth2/v3/userinfo',{headers:{Authorization:'Bearer '+tok}})).json();email=(u.email||'').toLowerCase();
