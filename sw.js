@@ -1,4 +1,4 @@
-const CACHE = 'parking-notice-v1';
+const CACHE = 'parking-notice-v4';
 
 self.addEventListener('install', () => self.skipWaiting());
 

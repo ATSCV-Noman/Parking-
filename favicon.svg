@@ -1,1 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1f3864"/><stop offset="1" stop-color="#2f66c4"/></linearGradient></defs><rect width="512" height="512" rx="112" fill="url(#g)"/><rect x="118" y="96" width="276" height="320" rx="44" fill="#fff"/><path d="M200 358V154h74c52 0 84 30 84 74s-32 74-84 74h-36v56z" fill="#1f3864"/><path d="M238 190v76h32c26 0 42-14 42-38s-16-38-42-38z" fill="#fff"/><path d="M330 330l92-92 0 0 0 0z" fill="none"/><circle cx="388" cy="388" r="62" fill="#f5b301" stroke="#fff" stroke-width="14"/><path d="M388 352v44" stroke="#1b2742" stroke-width="16" stroke-linecap="round"/><circle cx="388" cy="418" r="9" fill="#1b2742"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1e3a8a"/><stop offset="1" stop-color="#2f66c4"/></linearGradient></defs><rect width="512" height="512" rx="112" fill="url(#g)"/><g transform="translate(256 256) scale(1) translate(-256 -256)">
+<rect x="112" y="84" width="288" height="288" rx="50" fill="#fff"/>
+<path d="M190 214V112H232a36 36 0 0 1 0 72H190" fill="none" stroke="#1e3a8a" stroke-width="32" stroke-linejoin="round"/>
+<g transform="translate(-16 -28)"><path d="M150 322a14 14 0 0 1 14-14h6l20-34a10 10 0 0 1 9-5h106a10 10 0 0 1 9 5l20 34h6a14 14 0 0 1 14 14v18a8 8 0 0 1-8 8h-32a26 26 0 0 0-52 0h-60a26 26 0 0 0-52 0h-8a8 8 0 0 1-8-8z" fill="#1e3a8a"/>
+<path d="M206 306l14-22h72l14 22z" fill="#fff"/><rect x="254" y="284" width="6" height="22" fill="#1e3a8a"/>
+<circle cx="196" cy="348" r="22" fill="#1e3a8a" stroke="#fff" stroke-width="8"/><circle cx="196" cy="348" r="8" fill="#fff"/>
+<circle cx="316" cy="348" r="22" fill="#1e3a8a" stroke="#fff" stroke-width="8"/><circle cx="316" cy="348" r="8" fill="#fff"/></g>
+<circle cx="386" cy="386" r="66" fill="#e53935" stroke="#fff" stroke-width="14"/>
+<rect x="374" y="346" width="24" height="46" rx="12" fill="#fff"/><circle cx="386" cy="416" r="13" fill="#fff"/>
+</g></svg>
