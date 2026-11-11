@@ -57,7 +57,10 @@ button.wa{background:linear-gradient(135deg,#25d366,#12a150)}button.ml{backgroun
 <div id="err" hidden></div>
 <div class="pv" id="pv" hidden><div class="pvb"><button id="pm" onclick="show('m')">📋 Management</button><button id="pt" class="s" onclick="show('t')">📄 Tenant notice</button></div><div id="pvok"></div><div class="pvb"><button onclick="dlPdf()">⬇ Download PDF</button><button class="wa" onclick="shPdf('wa')">💬 WhatsApp</button><button class="x" style="grid-column:1/-1" onclick="closePv()">✕ Close</button></div><div id="pvn"></div><img id="pvi" alt="Report preview"></div>
 <div class="pv" id="nw" hidden style="display:flex;align-items:center;justify-content:center"><div class="c" style="max-width:420px;width:100%"><div class="st">⚠ Start a new notice?</div><div style="margin:6px 0 12px">All the data entered on this form (photos, plate, parking, violation) will be erased. Notices already saved in History are not affected.</div><button style="background:#c0392b" onclick="$('nw').hidden=true;resetForm();tab(1)">Yes, erase and start new</button><button class="s" onclick="$('nw').hidden=true;tab(1)">Cancel – keep my data</button></div></div>
-<div class="pv" id="cr" hidden style="display:flex;flex-direction:column;align-items:center"><div style="color:#fff;font-weight:700;margin:6px 0">Tap the number plate</div><canvas id="crc" style="touch-action:none;max-width:100%;border-radius:8px"></canvas><div style="color:#cfe0ff;font-size:13px;margin:8px 0 2px">Crop size</div><input type="range" id="crs" min="10" max="70" value="30" style="width:80%;max-width:360px"><div style="display:flex;gap:10px;margin-top:10px;width:100%;max-width:420px"><button onclick="crOk()">✂ Use this crop</button><button class="s" onclick="crSkip()">Skip</button></div></div>
+<div class="pv" id="cr" hidden style="display:flex;flex-direction:column;align-items:center;height:100vh;height:100dvh;overflow:hidden;box-sizing:border-box;padding:calc(env(safe-area-inset-top,0px) + 8px) 12px calc(env(safe-area-inset-bottom,0px) + 10px)">
+<div style="display:flex;align-items:center;width:100%;max-width:640px;gap:8px"><button class="s" style="width:auto;margin:0;padding:10px 16px" onclick="crSkip()">← Back</button><div style="flex:1;text-align:center;color:#fff;font-weight:700;font-size:16px">Tap the number plate</div><div style="width:84px"></div></div>
+<div id="crm" style="flex:1;min-height:0;width:100%;max-width:640px;display:flex;align-items:center;justify-content:center;margin:8px 0"><canvas id="crc" style="touch-action:none;border-radius:8px;display:block"></canvas></div>
+<div style="width:100%;max-width:420px;text-align:center"><div style="color:#cfe0ff;font-size:13px;margin-bottom:2px">Crop size</div><input type="range" id="crs" min="10" max="70" value="30" style="width:100%"><div style="display:flex;gap:10px;margin-top:10px"><button style="margin:0" onclick="crOk()">✂ Use this crop</button><button class="s" style="margin:0" onclick="crSkip()">Skip</button></div></div></div>
 <div class="pv" id="cf" hidden style="display:flex;align-items:center;justify-content:center"><div class="c" style="max-width:420px;width:100%"><div class="st">Report already exists</div><div id="cft"></div><button onclick="commit()">Generate another</button><button class="s" onclick="openDup()">Open existing report</button><button class="s" onclick="$('cf').hidden=true">Cancel</button></div></div>
 <div class="sh" id="sh" hidden onclick="if(event.target==this)closeSh()"><div class="p"><div class="hd"><span id="sht"></span><button onclick="closeSh()">Done</button></div><input id="shq" placeholder="🔍 Search" oninput="fillSh()"><div class="ls" id="shl"></div></div></div>
 
@@ -178,7 +181,7 @@ function plateBox(g,w,h){
    const sc=(e1-.7*e0)*Math.min(1.6,v/50)*(m>90?1.2:1);
    if(sc>bs){bs=sc;best={x:x,y:y,w:bw,h:bh,s:sc}}}}
  if(!best||best.s<=.035)return null;
- const gap=Math.round(best.h*1.2),cap=best.w*3.5,active=xx=>sum(I,xx,best.y,xx+1,best.y+best.h)/best.h>.12;
+ const gap=Math.round(best.h*2),cap=best.w*4,active=xx=>sum(I,xx,best.y,xx+1,best.y+best.h)/best.h>.08;
  let l=best.x,r=best.x+best.w,g0=0;
  for(let xx=best.x-1;xx>=0&&(r-xx)<cap;xx--){if(active(xx)){l=xx;g0=0}else if(++g0>gap)break}
  g0=0;for(let xx=best.x+best.w;xx<w&&(xx-l)<cap;xx++){if(active(xx)){r=xx+1;g0=0}else if(++g0>gap)break}
@@ -189,15 +192,19 @@ async function autoPlate(){const p=photo;if(!p||(photo2&&!photo2.auto))return;le
  try{if('TextDetector' in window){box=pickPlate(await new TextDetector().detect(p.raw))}}catch(e){}
  if(!box){try{box=heurBox(p)}catch(e){}}
  if(p!==photo||(photo2&&!photo2.auto))return;if(box)setCrop(p,box,true,1);else openCrop(p)}
-function setCrop(p,b,auto,pad){const px=pad?b.w*.1:0,py=pad?b.h*.6:0;let x=Math.max(0,b.x-px),y=Math.max(0,b.y-py),w=Math.min(p.w-x,b.w+2*px),h=Math.min(p.h-y,b.h+2*py);
+function setCrop(p,b,auto,pad){const px=pad?b.w*.18:0,py=pad?b.h*.8:0;let x=Math.max(0,b.x-px),y=Math.max(0,b.y-py),w=Math.min(p.w-x,b.w+2*px),h=Math.min(p.h-y,b.h+2*py);
  const o=p.orig,sx=o.naturalWidth/p.w,k=Math.min(1,1200/(w*sx)),c=document.createElement('canvas');c.width=Math.round(w*sx*k);c.height=Math.round(h*sx*k);c.getContext('2d').drawImage(o,x*sx,y*sx,w*sx,h*sx,0,0,c.width,c.height);
  photo2={w:c.width,h:c.height,raw:c,auto:!!auto};showP2();redraw()}
 let crP=null,crX=.5,crY=.6;
-function crDraw(){const c=$('crc'),p=crP,x=c.getContext('2d');x.drawImage(p.raw,0,0,c.width,c.height);const w=$('crs').value/100*c.width,h=w/2.5,l=Math.min(Math.max(0,crX*c.width-w/2),c.width-w),t=Math.min(Math.max(0,crY*c.height-h/2),c.height-h);
- x.fillStyle='rgba(0,0,0,.55)';x.fillRect(0,0,c.width,t);x.fillRect(0,t+h,c.width,c.height-t-h);x.fillRect(0,t,l,h);x.fillRect(l+w,t,c.width-l-w,h);x.strokeStyle='#ffd600';x.lineWidth=3;x.strokeRect(l,t,w,h);c._r={l,t,w,h}}
-function openCrop(p){crP=p;const c=$('crc'),W=Math.min(window.innerWidth-24,640);c.width=W;c.height=Math.round(W*p.h/p.w);crX=.5;crY=.6;$('cr').hidden=false;crDraw()}
+function crDraw(){const c=$('crc'),p=crP,x=c.getContext('2d'),d=c._d||1;x.drawImage(p.raw,0,0,c.width,c.height);const w=$('crs').value/100*c.width,h=w/2.5,l=Math.min(Math.max(0,crX*c.width-w/2),c.width-w),t=Math.min(Math.max(0,crY*c.height-h/2),c.height-h);
+ x.fillStyle='rgba(0,0,0,.55)';x.fillRect(0,0,c.width,t);x.fillRect(0,t+h,c.width,c.height-t-h);x.fillRect(0,t,l,h);x.fillRect(l+w,t,c.width-l-w,h);x.strokeStyle='#ffd600';x.lineWidth=3*d;x.strokeRect(l,t,w,h);c._r={l,t,w,h}}
+function crFit(){const c=$('crc'),p=crP,m=$('crm'),aw=m.clientWidth,ah=m.clientHeight,k=Math.min(aw/p.w,ah/p.h),d=window.devicePixelRatio||1;c.style.width=Math.floor(p.w*k)+'px';c.style.height=Math.floor(p.h*k)+'px';c.width=Math.floor(p.w*k*d);c.height=Math.floor(p.h*k*d);c._d=d;crDraw()}
+function openCrop(p){crP=p;crX=.5;crY=.6;let hb=null;try{hb=heurBox(p)}catch(e){}
+ if(hb){crX=(hb.x+hb.w/2)/p.w;crY=(hb.y+hb.h/2)/p.h;$('crs').value=Math.min(70,Math.max(10,Math.round(hb.w*1.4/p.w*100)))}else $('crs').value=30;
+ $('cr').hidden=false;crFit()}
 function crOk(){const c=$('crc'),r=c._r,k=crP.w/c.width;$('cr').hidden=true;setCrop(crP,{x:r.l*k,y:r.t*k,w:r.w*k,h:r.h*k},false,0)}
 function crSkip(){$('cr').hidden=true}
+addEventListener('resize',()=>{if(!$('cr').hidden&&crP)crFit()});
 (function(){const c=$('crc');const mv=e=>{const b=c.getBoundingClientRect();crX=(e.clientX-b.left)/b.width;crY=(e.clientY-b.top)/b.height;crDraw()};c.addEventListener('pointerdown',e=>{c.setPointerCapture(e.pointerId);mv(e)});c.addEventListener('pointermove',e=>{if(e.buttons)mv(e)});$('crs').oninput=crDraw})();
 function showP2(){$('pbox2').hidden=false;$('add2').hidden=true}
 function rmP2(){photo2=null;$('ph2').innerHTML='📷<br>Tap to add 2nd photo';$('pbox2').hidden=true;$('add2').hidden=false}
